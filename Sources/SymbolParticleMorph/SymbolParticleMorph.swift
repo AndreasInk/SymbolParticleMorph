@@ -19,7 +19,7 @@ public struct SymbolParticleMorph: View {
     @State private var activeFrames: Int = 0
     @State private var frameTickCount: UInt64 = 0
     @State private var lastMetricsLogTime: Date = .distantPast
-    @State private var revealProgress: Double = 0
+    @State private var revealProgress: Double = 1
     @State private var revealTask: Task<Void, Never>?
 
     /// Creates a symbol particle morph view.
@@ -93,6 +93,7 @@ public struct SymbolParticleMorph: View {
 
     private func rebuildParticles(restartReveal: Bool) {
         guard viewSize.width > 0, viewSize.height > 0 else { return }
+        let hadParticles = !particles.isEmpty
         let targets = SymbolParticleTargetGenerator.targets(
             for: symbolName,
             in: viewSize,
@@ -101,9 +102,9 @@ public struct SymbolParticleMorph: View {
         SymbolParticleField.retarget(&particles, to: targets)
         activeFrames = reduceMotion ? 0 : configuration.frameBudget
 
-        if restartReveal {
+        if restartReveal && hadParticles {
             restartRevealAnimation()
-        } else if reduceMotion {
+        } else {
             revealProgress = 1
         }
     }
