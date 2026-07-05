@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-- Initial private Swift package extraction.
+- Initial Swift package extraction.
 - Added `SymbolParticleMorph`, `ParticleMorphConfiguration`, `ParticleMorphQuality`, and `SymbolParticleMorphCache`.
 - Added Swift Testing coverage for configuration defaults, sampling clamps, particle caps, inset mapping, cache keys, and morph retargeting.
 
@@ -18,3 +18,7 @@
 
 - Added the MIT License.
 - Added PodPosture - Posture Improver as an app using `SymbolParticleMorph`.
+
+## 0.1.4
+
+- Simplified README license and installation wording.
