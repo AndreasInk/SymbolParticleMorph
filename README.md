@@ -2,7 +2,11 @@
 
 `SymbolParticleMorph` is a SwiftUI package that renders SF Symbols as animated particle fields and morphs the particles when the symbol changes. It started as the thumbs-up/thumbs-down symbol morph used in PodPosture, but the package API is generic and app independent.
 
-This repository is private. No public license is granted yet.
+This repository is currently private, but the package is licensed under the MIT License.
+
+## Used In
+
+- [PodPosture - Posture Improver](https://apps.apple.com/us/app/podposture-posture-improver/id1550684595) uses `SymbolParticleMorph` for its onboarding and posture-state SF Symbol particle glyphs.
 
 ## Platform Support
 
@@ -17,7 +21,7 @@ The package uses SwiftUI `Canvas` and `ImageRenderer`.
 Add the private package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/AndreasInk/SymbolParticleMorph.git", from: "0.1.0")
+.package(url: "https://github.com/AndreasInk/SymbolParticleMorph.git", from: "0.1.3")
 ```
 
 Then add `SymbolParticleMorph` to your app target.
@@ -101,6 +105,8 @@ The package performs no networking, analytics, tracking, persistence, or remote 
 - Choppy animation usually means the particle cap is too high for the surface. Try `.compact` or increase `samplingStep`.
 - If colors look unexpected, try a different `renderingStyle`.
 
-## Open Source Status
+## License
 
-This repository is intended to be open sourced later. Until a license is added, the code is private and no public reuse rights are granted.
+`SymbolParticleMorph` is available under the MIT License. See [LICENSE](LICENSE).
+
+The repository is still private for now, but the licensing is ready for a future public open-source release.

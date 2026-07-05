@@ -13,3 +13,8 @@
 ## 0.1.2
 
 - Render the initial particle field at full opacity so SwiftUI previews and first-frame snapshots are not blank.
+
+## 0.1.3
+
+- Added the MIT License.
+- Added PodPosture - Posture Improver as an app using `SymbolParticleMorph`.
