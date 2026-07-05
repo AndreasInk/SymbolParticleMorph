@@ -97,10 +97,6 @@ await MainActor.run {
 
 The view honors the system Reduce Motion setting by skipping the motion ticks and rendering the stable particle shape. Add an accessibility label at the call site when the symbol communicates state.
 
-## Privacy
-
-The package performs no networking, analytics, tracking, persistence, or remote writes.
-
 ## Troubleshooting
 
 - Blank output usually means the SF Symbol name is invalid or the frame is zero-sized.
