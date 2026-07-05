@@ -8,6 +8,8 @@ Licensed under the MIT License.
 
 - [PodPosture - Posture Improver](https://apps.apple.com/us/app/podposture-posture-improver/id1550684595) uses `SymbolParticleMorph` for its onboarding and posture-state SF Symbol particle glyphs.
 
+https://github.com/user-attachments/assets/f7c99376-702b-476c-b236-97378780ef2e
+
 ## Platform Support
 
 - iOS 18+
