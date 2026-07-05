@@ -82,7 +82,11 @@ enum SymbolParticleTargetGenerator {
         guard image.bytesPerPixel >= 4 else { return [] }
 
         var targets: [SymbolParticle] = []
-        let inset = Double(configuration.contentInset)
+        let maxParticleSize = max(
+            configuration.particleSizeRange.lowerBound,
+            configuration.particleSizeRange.upperBound
+        )
+        let inset = Double(configuration.contentInset) + maxParticleSize / 2
         let drawableWidth = max(1, Double(size.width) - inset * 2)
         let drawableHeight = max(1, Double(size.height) - inset * 2)
         let scale = min(

@@ -91,6 +91,10 @@ final class SymbolImageCache {
         size: CGSize,
         configuration: ParticleMorphConfiguration
     ) -> AnyView {
+        let paddedSize = CGSize(
+            width: max(size.width, configuration.symbolPointSize * 1.35),
+            height: max(size.height, configuration.symbolPointSize * 1.35)
+        )
         let base = Image(systemName: symbolName)
             .font(.system(size: configuration.symbolPointSize, weight: .regular, design: .default))
             .brightness(0.2)
@@ -119,7 +123,7 @@ final class SymbolImageCache {
 
         return AnyView(
             styled
-                .frame(width: size.width, height: size.height)
+                .frame(width: paddedSize.width, height: paddedSize.height)
                 .drawingGroup()
         )
     }
