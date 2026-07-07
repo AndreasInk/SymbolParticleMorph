@@ -26,6 +26,42 @@ private struct SymbolParticleMorphPreviewCatalog: View {
                 )
 
                 previewRow(
+                    title: "Color",
+                    items: [
+                        (
+                            "Ocean",
+                            "cloud.sun.rain.fill",
+                            .init(
+                                quality: .balanced,
+                                renderingStyle: .palette,
+                                primaryColor: SymbolParticleColor(red: 0, green: 0.48, blue: 1),
+                                secondaryColor: SymbolParticleColor(red: 0.18, green: 0.68, blue: 1)
+                            )
+                        ),
+                        (
+                            "Sunset",
+                            "star.circle.fill",
+                            .init(
+                                quality: .balanced,
+                                renderingStyle: .palette,
+                                primaryColor: SymbolParticleColor(red: 1, green: 0.34, blue: 0.16),
+                                secondaryColor: SymbolParticleColor(red: 1, green: 0.52, blue: 0.30)
+                            )
+                        ),
+                        (
+                            "Graphite",
+                            "person.crop.circle.fill",
+                            .init(
+                                quality: .balanced,
+                                renderingStyle: .monochrome,
+                                primaryColor: SymbolParticleColor(red: 0.22, green: 0.23, blue: 0.25)
+                            )
+                        ),
+                    ],
+                    frameSize: 120
+                )
+
+                previewRow(
                     title: "Tight Frames",
                     items: [
                         ("Small", "bolt.fill", .init(quality: .compact, contentInset: 2)),

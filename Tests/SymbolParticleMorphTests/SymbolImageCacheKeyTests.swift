@@ -12,6 +12,8 @@ struct SymbolImageCacheKeyTests {
             height: 80,
             scale: 2,
             renderingStyle: .hierarchical,
+            primaryColor: .systemBlue,
+            secondaryColor: .secondaryGray,
             symbolPointSize: 80
         )
         let differentStyle = SymbolImageCacheKey(
@@ -20,6 +22,8 @@ struct SymbolImageCacheKeyTests {
             height: 80,
             scale: 2,
             renderingStyle: .palette,
+            primaryColor: .systemBlue,
+            secondaryColor: .secondaryGray,
             symbolPointSize: 80
         )
         let differentSize = SymbolImageCacheKey(
@@ -28,6 +32,8 @@ struct SymbolImageCacheKeyTests {
             height: 120,
             scale: 2,
             renderingStyle: .hierarchical,
+            primaryColor: .systemBlue,
+            secondaryColor: .secondaryGray,
             symbolPointSize: 80
         )
         let differentPointSize = SymbolImageCacheKey(
@@ -36,12 +42,36 @@ struct SymbolImageCacheKeyTests {
             height: 80,
             scale: 2,
             renderingStyle: .hierarchical,
+            primaryColor: .systemBlue,
+            secondaryColor: .secondaryGray,
             symbolPointSize: 96
+        )
+        let differentPrimaryColor = SymbolImageCacheKey(
+            symbolName: "hand.thumbsup",
+            width: 80,
+            height: 80,
+            scale: 2,
+            renderingStyle: .hierarchical,
+            primaryColor: SymbolParticleColor(red: 1, green: 0.2, blue: 0.1),
+            secondaryColor: .secondaryGray,
+            symbolPointSize: 80
+        )
+        let differentSecondaryColor = SymbolImageCacheKey(
+            symbolName: "hand.thumbsup",
+            width: 80,
+            height: 80,
+            scale: 2,
+            renderingStyle: .hierarchical,
+            primaryColor: .systemBlue,
+            secondaryColor: SymbolParticleColor(red: 0.1, green: 0.9, blue: 0.4),
+            symbolPointSize: 80
         )
 
         #expect(base != differentStyle)
         #expect(base != differentSize)
         #expect(base != differentPointSize)
+        #expect(base != differentPrimaryColor)
+        #expect(base != differentSecondaryColor)
     }
 
     @MainActor

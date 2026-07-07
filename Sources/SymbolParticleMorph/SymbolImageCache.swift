@@ -12,6 +12,8 @@ struct SymbolImageCacheKey: Hashable {
     let height: Int
     let scale: Double
     let renderingStyle: SymbolParticleRenderingStyle
+    let primaryColor: SymbolParticleColor
+    let secondaryColor: SymbolParticleColor
     let symbolPointSize: Double
 }
 
@@ -44,6 +46,8 @@ final class SymbolImageCache {
             height: Int(size.height.rounded(.toNearestOrAwayFromZero)),
             scale: scale,
             renderingStyle: configuration.renderingStyle,
+            primaryColor: configuration.primaryColor,
+            secondaryColor: configuration.secondaryColor,
             symbolPointSize: Double(configuration.symbolPointSize)
         )
 
@@ -112,24 +116,26 @@ final class SymbolImageCache {
         let base = Image(systemName: symbolName)
             .font(.system(size: configuration.symbolPointSize, weight: .regular, design: .default))
             .brightness(Constants.symbolBrightnessBoost)
+        let primaryColor = Color(configuration.primaryColor)
+        let secondaryColor = Color(configuration.secondaryColor)
 
         switch configuration.renderingStyle {
         case .hierarchical:
             base
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(primaryColor)
                 .frame(width: paddedSize.width, height: paddedSize.height)
                 .drawingGroup()
         case .monochrome:
             base
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(primaryColor)
                 .frame(width: paddedSize.width, height: paddedSize.height)
                 .drawingGroup()
         case .palette:
             base
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(Color.accentColor, .secondary)
+                .foregroundStyle(primaryColor, secondaryColor)
                 .frame(width: paddedSize.width, height: paddedSize.height)
                 .drawingGroup()
         }
@@ -153,6 +159,17 @@ final class SymbolImageCache {
     private enum Constants {
         static let symbolPaddingMultiplier = 1.35
         static let symbolBrightnessBoost = 0.2
+    }
+}
+
+private extension Color {
+    init(_ color: SymbolParticleColor) {
+        self.init(
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+            opacity: color.opacity
+        )
     }
 }
 

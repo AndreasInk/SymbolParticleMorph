@@ -30,6 +30,12 @@ public struct ParticleMorphConfiguration: Equatable, Sendable {
     /// The SF Symbol rendering style used before particle sampling.
     public let renderingStyle: SymbolParticleRenderingStyle
 
+    /// The primary symbol color used while rasterizing particles.
+    public let primaryColor: SymbolParticleColor
+
+    /// The secondary symbol color used for palette rendering.
+    public let secondaryColor: SymbolParticleColor
+
     /// The point size used when rasterizing the SF Symbol before particle sampling.
     public let symbolPointSize: CGFloat
 
@@ -47,6 +53,8 @@ public struct ParticleMorphConfiguration: Equatable, Sendable {
         frameBudget: Int = 54,
         frameRate: Double = 45,
         renderingStyle: SymbolParticleRenderingStyle = .hierarchical,
+        primaryColor: SymbolParticleColor = .systemBlue,
+        secondaryColor: SymbolParticleColor = .secondaryGray,
         symbolPointSize: CGFloat = 80
     ) {
         self.quality = quality
@@ -58,6 +66,8 @@ public struct ParticleMorphConfiguration: Equatable, Sendable {
         self.frameBudget = max(0, frameBudget)
         self.frameRate = max(1, frameRate)
         self.renderingStyle = renderingStyle
+        self.primaryColor = primaryColor
+        self.secondaryColor = secondaryColor
         self.symbolPointSize = max(1, symbolPointSize)
     }
 }
