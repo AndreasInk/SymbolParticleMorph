@@ -22,7 +22,7 @@ public struct SymbolParticleMorph: View {
     private let configuration: ParticleMorphConfiguration
     private let timer: Publishers.Autoconnect<Timer.TimerPublisher>
 
-    @State private var particles: [SymbolParticle] = []
+    @State private var particleField = SymbolParticleField()
     @State private var swirlTime: Double = 0
     @State private var viewSize: CGSize = .zero
     @State private var activeFrames: Int = 0
@@ -47,15 +47,17 @@ public struct SymbolParticleMorph: View {
 
     public var body: some View {
         Canvas(opaque: false, colorMode: .linear, rendersAsynchronously: true) { context, _ in
+            _ = frameTickCount
             let minParticleSize = min(configuration.particleSizeRange.lowerBound, configuration.particleSizeRange.upperBound)
             let maxParticleSize = max(configuration.particleSizeRange.lowerBound, configuration.particleSizeRange.upperBound)
 
-            for (index, particle) in particles.enumerated() {
+            particleField.forEachParticle { index, particle, totalCount in
                 let size = maxParticleSize - (maxParticleSize - minParticleSize) * particle.z
                 let rect = CGRect(x: particle.x, y: particle.y, width: size, height: size)
-                let opacity = revealOpacity(for: particle, index: index, totalCount: particles.count)
-                guard opacity > 0 else { continue }
-                context.fill(Path(ellipseIn: rect), with: .color(particle.color.opacity(opacity)))
+                let opacity = revealOpacity(for: particle, index: index, totalCount: totalCount)
+                if opacity > 0 {
+                    context.fill(Path(ellipseIn: rect), with: .color(Color(particle.color, opacityMultiplier: opacity)))
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -91,24 +93,22 @@ public struct SymbolParticleMorph: View {
     private func updateSize(_ newSize: CGSize) {
         guard newSize != viewSize else { return }
         viewSize = newSize
-        rebuildParticles(restartReveal: particles.isEmpty)
+        rebuildParticles(restartReveal: particleField.isEmpty)
     }
 
     private func updateParticles() {
-        for index in particles.indices {
-            particles[index].update(swirlTime: swirlTime)
-        }
+        particleField.update(swirlTime: swirlTime)
     }
 
     private func rebuildParticles(restartReveal: Bool) {
         guard viewSize.width > 0, viewSize.height > 0 else { return }
-        let hadParticles = !particles.isEmpty
+        let hadParticles = !particleField.isEmpty
         let targets = SymbolParticleTargetGenerator.targets(
             for: symbolName,
             in: viewSize,
             configuration: configuration
         )
-        SymbolParticleField.retarget(&particles, to: targets)
+        particleField.retarget(to: targets)
         activeFrames = reduceMotion ? 0 : configuration.frameBudget
 
         if restartReveal && hadParticles {
@@ -157,7 +157,18 @@ public struct SymbolParticleMorph: View {
         guard now.timeIntervalSince(lastMetricsLogTime) >= Constants.metricsLogInterval else { return }
         lastMetricsLogTime = now
         Self.logger.debug(
-            "ticks=\(self.frameTickCount, privacy: .public) particles=\(self.particles.count, privacy: .public)"
+            "ticks=\(self.frameTickCount, privacy: .public) particles=\(self.particleField.count, privacy: .public)"
+        )
+    }
+}
+
+private extension Color {
+    init(_ color: SymbolParticleColor, opacityMultiplier: Double = 1) {
+        self.init(
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+            opacity: color.opacity * opacityMultiplier
         )
     }
 }

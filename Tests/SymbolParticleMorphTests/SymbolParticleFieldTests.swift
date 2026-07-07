@@ -63,6 +63,27 @@ struct SymbolParticleFieldTests {
         #expect(particles.isEmpty)
     }
 
+    @Test
+    func fieldInstanceRetargetsAndUpdatesStoredParticles() {
+        let field = SymbolParticleField()
+        field.retarget(to: [
+            particle(x: 10, y: 20, baseX: 10, baseY: 20),
+            particle(x: 30, y: 40, baseX: 30, baseY: 40),
+        ])
+
+        #expect(field.count == 2)
+        #expect(field.particles[0].x == 10)
+
+        field.retarget(to: [
+            particle(x: 100, y: 120, baseX: 100, baseY: 120),
+        ])
+        field.update(swirlTime: 0.4)
+
+        #expect(field.count == 1)
+        #expect(field.particles[0].baseX == 100)
+        #expect(field.particles[0].x > 10)
+    }
+
     private func particle(x: Double, y: Double, baseX: Double, baseY: Double) -> SymbolParticle {
         SymbolParticle(
             x: x,
@@ -71,7 +92,7 @@ struct SymbolParticleFieldTests {
             baseY: baseY,
             density: 10,
             z: 0.5,
-            color: .accentColor
+            color: .systemBlue
         )
     }
 }

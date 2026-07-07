@@ -80,7 +80,7 @@ final class SymbolParticleMorphPerformanceTests: XCTestCase {
                 baseY: y,
                 density: 10,
                 z: 0.5,
-                color: .accentColor
+                color: .systemBlue
             )
         }
     }

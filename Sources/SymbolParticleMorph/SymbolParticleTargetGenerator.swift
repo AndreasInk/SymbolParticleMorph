@@ -1,6 +1,5 @@
 import CoreGraphics
 import OSLog
-import SwiftUI
 
 struct SymbolPixelImage {
     let width: Int
@@ -103,6 +102,9 @@ enum SymbolParticleTargetGenerator {
         guard image.bytesPerPixel >= 4 else { return [] }
 
         var targets: [SymbolParticle] = []
+        let sampledColumnCount = (image.width + configuration.samplingStep - 1) / configuration.samplingStep
+        let sampledRowCount = (image.height + configuration.samplingStep - 1) / configuration.samplingStep
+        targets.reserveCapacity(min(configuration.maxParticleCount, sampledColumnCount * sampledRowCount))
         let maxParticleSize = max(
             configuration.particleSizeRange.lowerBound,
             configuration.particleSizeRange.upperBound
@@ -146,7 +148,7 @@ enum SymbolParticleTargetGenerator {
                         baseY: py,
                         density: density(forX: x, y: y),
                         z: depth,
-                        color: Color(
+                        color: SymbolParticleColor(
                             red: Double(r) / Constants.colorChannelMax,
                             green: Double(g) / Constants.colorChannelMax,
                             blue: Double(b) / Constants.colorChannelMax,

@@ -1,5 +1,4 @@
 import CoreGraphics
-import SwiftUI
 
 struct SymbolParticle {
     fileprivate enum Constants {
@@ -16,7 +15,7 @@ struct SymbolParticle {
     var baseY: Double
     let density: Double
     var z: Double
-    var color: Color
+    var color: SymbolParticleColor
     var velocityX: Double = 0
     var velocityY: Double = 0
 
@@ -38,14 +37,43 @@ struct SymbolParticle {
     }
 }
 
-struct SymbolParticleField {
+final class SymbolParticleField {
+    private(set) var particles: [SymbolParticle] = []
+
+    var isEmpty: Bool {
+        particles.isEmpty
+    }
+
+    var count: Int {
+        particles.count
+    }
+
+    func update(swirlTime: Double) {
+        for index in particles.indices {
+            particles[index].update(swirlTime: swirlTime)
+        }
+    }
+
+    func forEachParticle(_ body: (_ index: Int, _ particle: SymbolParticle, _ totalCount: Int) -> Void) {
+        let totalCount = particles.count
+        for index in particles.indices {
+            body(index, particles[index], totalCount)
+        }
+    }
+
+    func retarget(to targets: [SymbolParticle]) {
+        Self.retarget(&particles, to: targets)
+    }
+
     static func retarget(_ particles: inout [SymbolParticle], to targets: [SymbolParticle]) {
         if particles.isEmpty {
-            particles = targets.map { target in
+            particles.removeAll(keepingCapacity: true)
+            particles.reserveCapacity(targets.count)
+            for target in targets {
                 var particle = target
                 particle.x = target.baseX
                 particle.y = target.baseY
-                return particle
+                particles.append(particle)
             }
             return
         }
@@ -59,6 +87,7 @@ struct SymbolParticleField {
         }
 
         if targetCount > particles.count {
+            particles.reserveCapacity(targetCount)
             for index in particles.count..<targetCount {
                 particles.append(targets[index])
             }
