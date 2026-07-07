@@ -10,7 +10,7 @@ struct ExampleContentView: View {
     @State private var symbolPointSize = 94.0
     @State private var contentInset = 10.0
     @State private var maxParticleCount = 1_800.0
-    @State private var samplingStep = 4.0
+    @State private var samplingStep = 6.0
     @State private var frameBudget = 54.0
     @State private var revealDuration = 0.8
 
