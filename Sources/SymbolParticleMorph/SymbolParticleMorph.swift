@@ -54,7 +54,7 @@ public struct SymbolParticleMorph: View {
             particleField.forEachParticle { index, particle, totalCount in
                 let size = maxParticleSize - (maxParticleSize - minParticleSize) * particle.z
                 let rect = CGRect(x: particle.x, y: particle.y, width: size, height: size)
-                let opacity = revealOpacity(for: particle, index: index, totalCount: totalCount)
+                let opacity = particle.opacity * revealOpacity(for: particle, index: index, totalCount: totalCount)
                 if opacity > 0 {
                     context.fill(Path(ellipseIn: rect), with: .color(Color(particle.color, opacityMultiplier: opacity)))
                 }
@@ -80,10 +80,13 @@ public struct SymbolParticleMorph: View {
             logParticleMetricsIfNeeded()
         }
         .onChange(of: symbolName) {
-            rebuildParticles(restartReveal: true)
+            rebuildParticles(restartReveal: false, animateMorph: true)
+        }
+        .onChange(of: configuration) {
+            rebuildParticles(restartReveal: false, animateMorph: false)
         }
         .onAppear {
-            rebuildParticles(restartReveal: true)
+            rebuildParticles(restartReveal: true, animateMorph: false)
         }
         .onDisappear {
             revealTask?.cancel()
@@ -93,14 +96,14 @@ public struct SymbolParticleMorph: View {
     private func updateSize(_ newSize: CGSize) {
         guard newSize != viewSize else { return }
         viewSize = newSize
-        rebuildParticles(restartReveal: particleField.isEmpty)
+        rebuildParticles(restartReveal: particleField.isEmpty, animateMorph: false)
     }
 
     private func updateParticles() {
         particleField.update(swirlTime: swirlTime)
     }
 
-    private func rebuildParticles(restartReveal: Bool) {
+    private func rebuildParticles(restartReveal: Bool, animateMorph: Bool) {
         guard viewSize.width > 0, viewSize.height > 0 else { return }
         let hadParticles = !particleField.isEmpty
         let targets = SymbolParticleTargetGenerator.targets(
@@ -108,8 +111,10 @@ public struct SymbolParticleMorph: View {
             in: viewSize,
             configuration: configuration
         )
-        particleField.retarget(to: targets)
-        activeFrames = reduceMotion ? 0 : configuration.frameBudget
+        let shouldAnimateMorph = animateMorph && hadParticles && !reduceMotion && configuration.frameBudget > 0
+        particleField.retarget(to: targets, animated: shouldAnimateMorph)
+        activeFrames = shouldAnimateMorph ? configuration.frameBudget : 0
+        frameTickCount &+= 1
 
         if restartReveal && hadParticles {
             restartRevealAnimation()
