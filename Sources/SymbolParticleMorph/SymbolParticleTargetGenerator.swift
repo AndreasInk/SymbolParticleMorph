@@ -165,10 +165,16 @@ enum SymbolParticleTargetGenerator {
     private static func capped(_ targets: [SymbolParticle], maxCount: Int) -> [SymbolParticle] {
         guard targets.count > maxCount else { return targets }
         let step = max(1, targets.count / maxCount)
-        let reduced = stride(from: 0, to: targets.count, by: step).map { targets[$0] }
-        if reduced.count > maxCount {
-            return Array(reduced.prefix(maxCount))
+
+        var reduced: [SymbolParticle] = []
+        reduced.reserveCapacity(maxCount)
+
+        var index = 0
+        while index < targets.count && reduced.count < maxCount {
+            reduced.append(targets[index])
+            index += step
         }
+
         return reduced
     }
 
