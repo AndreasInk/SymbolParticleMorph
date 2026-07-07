@@ -6,6 +6,15 @@ import SwiftUI
 public struct SymbolParticleMorph: View {
     private static let logger = Logger(subsystem: "com.andreasink.SymbolParticleMorph", category: "SymbolParticleMorph")
     private static let signposter = OSSignposter(subsystem: "com.andreasink.SymbolParticleMorph", category: "SymbolParticleMorph")
+    private enum Constants {
+        static let swirlTimeStep = 0.02
+        static let metricsLogInterval: TimeInterval = 5
+        static let seedXWeight = 0.013
+        static let seedYWeight = 0.021
+        static let revealSeedWeight = 0.7
+        static let revealIndexWeight = 0.3
+        static let revealFadeWindow = 0.22
+    }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -63,7 +72,7 @@ public struct SymbolParticleMorph: View {
             let state = Self.signposter.beginInterval("ParticleFrame")
             updateParticles()
             activeFrames -= 1
-            swirlTime += 0.02
+            swirlTime += Constants.swirlTimeStep
             Self.signposter.endInterval("ParticleFrame", state)
             frameTickCount &+= 1
             logParticleMetricsIfNeeded()
@@ -129,17 +138,23 @@ public struct SymbolParticleMorph: View {
     private func revealOpacity(for particle: SymbolParticle, index: Int, totalCount: Int) -> Double {
         guard !reduceMotion else { return 1 }
 
-        let stableSeed = ((particle.baseX * 0.013) + (particle.baseY * 0.021)).truncatingRemainder(dividingBy: 1)
+        let stableSeed = (
+            (particle.baseX * Constants.seedXWeight)
+            + (particle.baseY * Constants.seedYWeight)
+        ).truncatingRemainder(dividingBy: 1)
         let normalizedSeed = stableSeed >= 0 ? stableSeed : stableSeed + 1
         let normalizedIndex = totalCount > 1 ? Double(index) / Double(totalCount - 1) : 0
-        let revealAnchor = min(1, normalizedSeed * 0.7 + normalizedIndex * 0.3)
-        let fadeWindow = 0.22
-        return ((revealProgress - revealAnchor) / fadeWindow).clamped(to: 0...1)
+        let revealAnchor = min(
+            1,
+            normalizedSeed * Constants.revealSeedWeight
+                + normalizedIndex * Constants.revealIndexWeight
+        )
+        return ((revealProgress - revealAnchor) / Constants.revealFadeWindow).clamped(to: 0...1)
     }
 
     private func logParticleMetricsIfNeeded() {
         let now = Date()
-        guard now.timeIntervalSince(lastMetricsLogTime) >= 5 else { return }
+        guard now.timeIntervalSince(lastMetricsLogTime) >= Constants.metricsLogInterval else { return }
         lastMetricsLogTime = now
         Self.logger.debug(
             "ticks=\(self.frameTickCount, privacy: .public) particles=\(self.particles.count, privacy: .public)"

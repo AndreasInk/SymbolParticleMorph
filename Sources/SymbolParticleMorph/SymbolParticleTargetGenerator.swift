@@ -1,4 +1,5 @@
 import CoreGraphics
+import OSLog
 import SwiftUI
 
 struct SymbolPixelImage {
@@ -18,6 +19,21 @@ struct SymbolPixelImage {
 }
 
 enum SymbolParticleTargetGenerator {
+    private static let logger = Logger(subsystem: "com.andreasink.SymbolParticleMorph", category: "SymbolParticleTargetGenerator")
+
+    private enum Constants {
+        static let minimumVisibleAlpha: UInt8 = 50
+        static let redLuminanceWeight = 0.299
+        static let greenLuminanceWeight = 0.587
+        static let blueLuminanceWeight = 0.114
+        static let colorChannelMax = 255.0
+        static let densityMinimum = 5.0
+        static let densityRangeSteps: UInt64 = 1_500
+        static let densityScale = 100.0
+        static let xDensityPrime = 73_856_093
+        static let yDensityPrime = 19_349_663
+    }
+
     @MainActor
     static func targets(
         for symbolName: String,
@@ -33,10 +49,15 @@ enum SymbolParticleTargetGenerator {
             size: renderSize,
             configuration: configuration
         ) else {
+            logger.warning("Failed to rasterize SF Symbol '\(symbolName, privacy: .public)'")
             return []
         }
 
-        return targets(from: cgImage, in: size, configuration: configuration)
+        let targets = targets(from: cgImage, in: size, configuration: configuration)
+        if targets.isEmpty {
+            logger.debug("Generated no particle targets for SF Symbol '\(symbolName, privacy: .public)'")
+        }
+        return targets
     }
 
     static func targets(
@@ -96,6 +117,7 @@ enum SymbolParticleTargetGenerator {
         let offsetX = inset + (drawableWidth - Double(image.width) * scale) / 2.0
         let offsetY = inset + (drawableHeight - Double(image.height) * scale) / 2.0
         let rowStride = bytesPerRow ?? image.bytesPerRow
+        guard rowStride >= image.width * image.bytesPerPixel else { return [] }
 
         for y in stride(from: 0, to: image.height, by: configuration.samplingStep) {
             for x in stride(from: 0, to: image.width, by: configuration.samplingStep) {
@@ -106,9 +128,13 @@ enum SymbolParticleTargetGenerator {
                 let g = image.data[pixelIndex + 1]
                 let b = image.data[pixelIndex + 2]
                 let a = image.data[pixelIndex + 3]
-                guard a > 50 else { continue }
+                guard a > Constants.minimumVisibleAlpha else { continue }
 
-                let brightness = (0.299 * Double(r) + 0.587 * Double(g) + 0.114 * Double(b)) / 255.0
+                let brightness = (
+                    Constants.redLuminanceWeight * Double(r)
+                    + Constants.greenLuminanceWeight * Double(g)
+                    + Constants.blueLuminanceWeight * Double(b)
+                ) / Constants.colorChannelMax
                 let px = Double(x) * scale + offsetX
                 let py = Double(y) * scale + offsetY
                 let depth = 1 - brightness
@@ -121,10 +147,10 @@ enum SymbolParticleTargetGenerator {
                         density: density(forX: x, y: y),
                         z: depth,
                         color: Color(
-                            red: Double(r) / 255,
-                            green: Double(g) / 255,
-                            blue: Double(b) / 255,
-                            opacity: Double(a) / 255
+                            red: Double(r) / Constants.colorChannelMax,
+                            green: Double(g) / Constants.colorChannelMax,
+                            blue: Double(b) / Constants.colorChannelMax,
+                            opacity: Double(a) / Constants.colorChannelMax
                         )
                     )
                 )
@@ -145,7 +171,7 @@ enum SymbolParticleTargetGenerator {
     }
 
     private static func density(forX x: Int, y: Int) -> Double {
-        let mixed = UInt64((x &* 73_856_093) ^ (y &* 19_349_663))
-        return 5 + Double(mixed % 1_500) / 100
+        let mixed = UInt64((x &* Constants.xDensityPrime) ^ (y &* Constants.yDensityPrime))
+        return Constants.densityMinimum + Double(mixed % Constants.densityRangeSteps) / Constants.densityScale
     }
 }
