@@ -62,6 +62,10 @@ SymbolParticleMorph(
 .accessibilityHidden(true)
 ```
 
+## Example App
+
+The `Examples/SymbolParticleMorphExample` iOS project demonstrates the morph view with quality and rendering controls. It includes a launch screen storyboard so the app can run on iOS 27 devices and be profiled in Instruments.
+
 ## Configuration
 
 `ParticleMorphConfiguration` controls:
