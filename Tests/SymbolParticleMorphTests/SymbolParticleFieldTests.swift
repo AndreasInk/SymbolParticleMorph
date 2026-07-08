@@ -5,7 +5,7 @@ import Testing
 @Suite
 struct SymbolParticleFieldTests {
     @Test
-    func morphRetargetingReusesExistingParticlePositions() {
+    func directRetargetingSnapsExistingParticlesToTargets() {
         var particles = [
             particle(x: 1, y: 2, baseX: 1, baseY: 2),
             particle(x: 3, y: 4, baseX: 3, baseY: 4),
@@ -19,12 +19,12 @@ struct SymbolParticleFieldTests {
         SymbolParticleField.retarget(&particles, to: targets)
 
         #expect(particles.count == 3)
-        #expect(particles[0].x == 1)
-        #expect(particles[0].y == 2)
+        #expect(particles[0].x == 10)
+        #expect(particles[0].y == 20)
         #expect(particles[0].baseX == 10)
         #expect(particles[0].baseY == 20)
-        #expect(particles[1].x == 3)
-        #expect(particles[1].y == 4)
+        #expect(particles[1].x == 30)
+        #expect(particles[1].y == 40)
         #expect(particles[1].baseX == 30)
         #expect(particles[1].baseY == 40)
         #expect(particles[2].x == 50)
@@ -45,8 +45,8 @@ struct SymbolParticleFieldTests {
         SymbolParticleField.retarget(&particles, to: targets)
 
         #expect(particles.count == 1)
-        #expect(particles[0].x == 1)
-        #expect(particles[0].y == 2)
+        #expect(particles[0].x == 10)
+        #expect(particles[0].y == 20)
         #expect(particles[0].baseX == 10)
         #expect(particles[0].baseY == 20)
     }
@@ -81,7 +81,36 @@ struct SymbolParticleFieldTests {
 
         #expect(field.count == 1)
         #expect(field.particles[0].baseX == 100)
-        #expect(field.particles[0].x > 10)
+        #expect(field.particles[0].x == 100)
+        #expect(field.particles[0].y == 120)
+    }
+
+    @Test
+    func nonAnimatedRetargetClearsMotionState() {
+        let field = SymbolParticleField()
+        field.retarget(to: [
+            particle(x: 10, y: 20, baseX: 10, baseY: 20),
+            particle(x: 30, y: 40, baseX: 30, baseY: 40),
+        ], animated: false)
+        field.retarget(to: [
+            particle(x: 100, y: 120, baseX: 100, baseY: 120),
+            particle(x: 130, y: 140, baseX: 130, baseY: 140),
+        ])
+        field.update(swirlTime: 0.4)
+
+        field.retarget(to: [
+            particle(x: 200, y: 220, baseX: 200, baseY: 220),
+            particle(x: 230, y: 240, baseX: 230, baseY: 240),
+        ], animated: false)
+
+        #expect(field.particles[0].x == 200)
+        #expect(field.particles[0].y == 220)
+        #expect(field.particles[0].baseX == 200)
+        #expect(field.particles[0].baseY == 220)
+        #expect(field.particles[0].velocityX == 0)
+        #expect(field.particles[0].velocityY == 0)
+        #expect(field.particles[0].opacity == 1)
+        #expect(field.particles[0].targetOpacity == 1)
     }
 
     @Test

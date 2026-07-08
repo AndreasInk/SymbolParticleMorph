@@ -143,12 +143,7 @@ final class SymbolParticleField {
             particles.removeAll(keepingCapacity: true)
             particles.reserveCapacity(targets.count)
             for target in targets {
-                var particle = target
-                particle.x = target.baseX
-                particle.y = target.baseY
-                particle.opacity = 1
-                particle.targetOpacity = 1
-                particles.append(particle)
+                particles.append(snappedParticle(from: target))
             }
             return
         }
@@ -164,32 +159,28 @@ final class SymbolParticleField {
     private static func retargetDirectly(_ particles: inout [SymbolParticle], to targets: [SymbolParticle]) {
         let targetCount = targets.count
         for index in 0..<min(particles.count, targetCount) {
-            particles[index].baseX = targets[index].baseX
-            particles[index].baseY = targets[index].baseY
-            particles[index].z = targets[index].z
-            particles[index].color = targets[index].color
-            particles[index].targetOpacity = 1
-            if particles[index].opacity == 0 {
-                particles[index].opacity = 1
-            }
+            particles[index] = snappedParticle(from: targets[index])
         }
 
         if targetCount > particles.count {
             particles.reserveCapacity(targetCount)
             for index in particles.count..<targetCount {
-                var particle = targets[index]
-                particle.opacity = 1
-                particle.targetOpacity = 1
-                particles.append(particle)
+                particles.append(snappedParticle(from: targets[index]))
             }
         } else if particles.count > targetCount {
             particles.removeLast(particles.count - targetCount)
         }
+    }
 
-        for index in particles.indices {
-            particles[index].velocityX = (particles[index].baseX - particles[index].x) * SymbolParticle.Constants.retargetImpulse
-            particles[index].velocityY = (particles[index].baseY - particles[index].y) * SymbolParticle.Constants.retargetImpulse
-        }
+    private static func snappedParticle(from target: SymbolParticle) -> SymbolParticle {
+        var particle = target
+        particle.x = target.baseX
+        particle.y = target.baseY
+        particle.velocityX = 0
+        particle.velocityY = 0
+        particle.opacity = 1
+        particle.targetOpacity = 1
+        return particle
     }
 
     private static func retargetAnimated(

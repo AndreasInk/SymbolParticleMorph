@@ -50,12 +50,11 @@ final class SymbolParticleMorphPerformanceTests: XCTestCase {
         let destinationTargets = particles(count: 1_800, offset: 40)
 
         measure(metrics: [XCTClockMetric()]) {
-            var particles = sourceTargets
-            SymbolParticleField.retarget(&particles, to: destinationTargets)
+            let field = SymbolParticleField()
+            field.retarget(to: sourceTargets, animated: false)
+            field.retarget(to: destinationTargets)
             for _ in 0..<54 {
-                for index in particles.indices {
-                    particles[index].update(swirlTime: 0.4)
-                }
+                field.update(swirlTime: 0.4)
             }
         }
     }
