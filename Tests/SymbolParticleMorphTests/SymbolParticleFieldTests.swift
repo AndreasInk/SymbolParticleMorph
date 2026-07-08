@@ -152,6 +152,63 @@ struct SymbolParticleFieldTests {
         #expect(assignedBaseX.sorted() == [10, 20, 30, 40])
     }
 
+    @Test
+    func completedRevealKeepsEveryParticleFullyVisible() {
+        let field = SymbolParticleField()
+        field.retarget(to: [
+            particle(x: 10, y: 20, baseX: 10, baseY: 20),
+            particle(x: 30, y: 40, baseX: 30, baseY: 40),
+            particle(x: 50, y: 60, baseX: 50, baseY: 60),
+            particle(x: 70, y: 80, baseX: 70, baseY: 80),
+        ], animated: false)
+        var frame = ParticleRenderFrame.empty
+        frame.replaceItems(with: field.particles)
+
+        let finalRevealOpacities = frame.items.map {
+            $0.revealOpacity(progress: 1, fadeWindow: 0.22)
+        }
+
+        #expect(finalRevealOpacities.allSatisfy { $0 == 1 })
+    }
+
+    @Test
+    func retargetingPrecomputesRevealAnchors() {
+        let field = SymbolParticleField()
+        field.retarget(to: [
+            particle(x: 10, y: 20, baseX: 10, baseY: 20),
+            particle(x: 30, y: 40, baseX: 30, baseY: 40),
+            particle(x: 50, y: 60, baseX: 50, baseY: 60),
+        ], animated: false)
+
+        let anchors = field.particles.map(\.revealAnchor)
+
+        #expect(anchors.count == 3)
+        #expect(anchors.allSatisfy { (0...1).contains($0) })
+        #expect(Set(anchors).count > 1)
+    }
+
+    @Test
+    func renderFrameSnapshotsParticleState() {
+        let field = SymbolParticleField()
+        field.retarget(to: [
+            particle(x: 10, y: 20, baseX: 10, baseY: 20),
+            particle(x: 30, y: 40, baseX: 30, baseY: 40),
+        ], animated: false)
+        var frame = ParticleRenderFrame.empty
+        frame.replaceItems(with: field.particles)
+
+        field.retarget(to: [
+            particle(x: 100, y: 120, baseX: 100, baseY: 120),
+            particle(x: 130, y: 140, baseX: 130, baseY: 140),
+        ], animated: false)
+        field.update(swirlTime: 0.2)
+
+        #expect(frame.items.count == 2)
+        #expect(frame.items[0].x == 10)
+        #expect(frame.items[0].y == 20)
+        #expect(frame.items[0].color == .systemBlue)
+    }
+
     private func particle(x: Double, y: Double, baseX: Double, baseY: Double) -> SymbolParticle {
         SymbolParticle(
             x: x,

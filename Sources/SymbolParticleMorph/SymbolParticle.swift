@@ -9,6 +9,10 @@ struct SymbolParticle {
         static let retargetImpulse = 0.04
         static let opacityResponse = 0.2
         static let opacitySnapThreshold = 0.01
+        static let revealSeedXWeight = 0.013
+        static let revealSeedYWeight = 0.021
+        static let revealSeedWeight = 0.7
+        static let revealIndexWeight = 0.3
     }
 
     var x: Double
@@ -22,6 +26,7 @@ struct SymbolParticle {
     var velocityY: Double = 0
     var opacity: Double = 1
     var targetOpacity: Double = 1
+    var revealAnchor: Double = 0
 
     mutating func update(swirlTime: Double) {
         let dx = baseX - x
@@ -46,6 +51,46 @@ struct SymbolParticle {
     }
 }
 
+struct ParticleRenderItem: Sendable {
+    let x: Double
+    let y: Double
+    let z: Double
+    let opacity: Double
+    let revealAnchor: Double
+    let color: SymbolParticleColor
+
+    init(_ particle: SymbolParticle) {
+        self.x = particle.x
+        self.y = particle.y
+        self.z = particle.z
+        self.opacity = particle.opacity
+        self.revealAnchor = particle.revealAnchor
+        self.color = particle.color
+    }
+
+    func revealOpacity(progress: Double, fadeWindow: Double) -> Double {
+        guard progress < 1 else { return 1 }
+        let opacity = (progress - revealAnchor) / fadeWindow
+        if opacity <= 0 { return 0 }
+        if opacity >= 1 { return 1 }
+        return opacity
+    }
+}
+
+struct ParticleRenderFrame: Sendable {
+    static let empty = ParticleRenderFrame()
+
+    private(set) var items: [ParticleRenderItem] = []
+
+    mutating func replaceItems(with particles: [SymbolParticle]) {
+        items.removeAll(keepingCapacity: true)
+        items.reserveCapacity(particles.count)
+        for particle in particles {
+            items.append(ParticleRenderItem(particle))
+        }
+    }
+}
+
 final class SymbolParticleField {
     private(set) var particles: [SymbolParticle] = []
     private var retargetGeneration = 0
@@ -65,17 +110,14 @@ final class SymbolParticleField {
         }
 
         guard hasRetiringParticles else { return }
+        let previousCount = particles.count
         particles.removeAll { particle in
             particle.targetOpacity == 0 && particle.opacity <= SymbolParticle.Constants.opacitySnapThreshold
         }
-        hasRetiringParticles = particles.contains { $0.targetOpacity == 0 }
-    }
-
-    func forEachParticle(_ body: (_ index: Int, _ particle: SymbolParticle, _ totalCount: Int) -> Void) {
-        let totalCount = particles.count
-        for index in particles.indices {
-            body(index, particles[index], totalCount)
+        if particles.count != previousCount {
+            Self.updateRevealAnchors(&particles)
         }
+        hasRetiringParticles = particles.contains { $0.targetOpacity == 0 }
     }
 
     func retarget(to targets: [SymbolParticle], animated: Bool = true) {
@@ -83,6 +125,7 @@ final class SymbolParticleField {
             retargetGeneration &+= 1
         }
         Self.retarget(&particles, to: targets, animated: animated, generation: retargetGeneration)
+        Self.updateRevealAnchors(&particles)
         hasRetiringParticles = particles.contains { $0.targetOpacity == 0 }
     }
 
@@ -243,6 +286,32 @@ private struct TargetAssignment {
     func index(for slot: Int) -> Int {
         guard count > 0 else { return 0 }
         return (slot &* stride &+ offset) % count
+    }
+}
+
+private extension SymbolParticleField {
+    static func updateRevealAnchors(_ particles: inout [SymbolParticle]) {
+        guard particles.count > 1 else {
+            if !particles.isEmpty {
+                particles[0].revealAnchor = 0
+            }
+            return
+        }
+
+        let lastIndex = Double(particles.count - 1)
+        for index in particles.indices {
+            let stableSeed = (
+                (particles[index].baseX * SymbolParticle.Constants.revealSeedXWeight)
+                    + (particles[index].baseY * SymbolParticle.Constants.revealSeedYWeight)
+            ).truncatingRemainder(dividingBy: 1)
+            let normalizedSeed = stableSeed >= 0 ? stableSeed : stableSeed + 1
+            let normalizedIndex = Double(index) / lastIndex
+            particles[index].revealAnchor = min(
+                1,
+                normalizedSeed * SymbolParticle.Constants.revealSeedWeight
+                    + normalizedIndex * SymbolParticle.Constants.revealIndexWeight
+            )
+        }
     }
 }
 
