@@ -23,7 +23,7 @@ The package uses SwiftUI `Canvas` and `ImageRenderer`.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/AndreasInk/SymbolParticleMorph.git", from: "0.1.4")
+.package(url: "https://github.com/AndreasInk/SymbolParticleMorph.git", from: "0.2.0")
 ```
 
 Then add `SymbolParticleMorph` to your app target.
