@@ -1,0 +1,26 @@
+name: SymbolParticleMorphExample
+options:
+  bundleIdPrefix: com.andreasink
+  deploymentTarget:
+    iOS: "18.0"
+packages:
+  SymbolParticleMorph:
+    path: ../..
+targets:
+  SymbolParticleMorphExample:
+    type: application
+    platform: iOS
+    sources:
+      - SymbolParticleMorphExample
+    dependencies:
+      - package: SymbolParticleMorph
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andreasink.SymbolParticleMorphExample
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        SWIFT_VERSION: 6.0
+        TARGETED_DEVICE_FAMILY: 1

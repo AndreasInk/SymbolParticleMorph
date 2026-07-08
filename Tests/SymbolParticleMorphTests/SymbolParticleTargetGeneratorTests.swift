@@ -23,6 +23,23 @@ struct SymbolParticleTargetGeneratorTests {
     }
 
     @Test
+    func particleCapStopsAtMaximumForNonDivisibleSourceCounts() {
+        let image = filledImage(width: 11, height: 11)
+        let configuration = ParticleMorphConfiguration(
+            maxParticleCount: 50,
+            samplingStep: 1
+        )
+
+        let targets = SymbolParticleTargetGenerator.targets(
+            from: image,
+            in: CGSize(width: 100, height: 100),
+            configuration: configuration
+        )
+
+        #expect(targets.count == 50)
+    }
+
+    @Test
     func contentInsetKeepsParticlesInsideDrawableBounds() {
         let image = filledImage(width: 4, height: 4)
         let configuration = ParticleMorphConfiguration(
@@ -68,6 +85,65 @@ struct SymbolParticleTargetGeneratorTests {
         )
 
         #expect(targets.count == 1)
+    }
+
+    @Test
+    func alphaThresholdRequiresVisiblePixelsAboveCutoff() {
+        let image = SymbolPixelImage(
+            width: 2,
+            height: 1,
+            data: [
+                255, 255, 255, 50,
+                255, 255, 255, 51,
+            ]
+        )
+        let configuration = ParticleMorphConfiguration(
+            maxParticleCount: 10,
+            samplingStep: 1
+        )
+
+        let targets = SymbolParticleTargetGenerator.targets(
+            from: image,
+            in: CGSize(width: 20, height: 20),
+            configuration: configuration
+        )
+
+        #expect(targets.count == 1)
+    }
+
+    @Test
+    func invalidRowStrideProducesNoTargets() {
+        let image = filledImage(width: 2, height: 2)
+        let configuration = ParticleMorphConfiguration(
+            maxParticleCount: 10,
+            samplingStep: 1
+        )
+
+        let targets = SymbolParticleTargetGenerator.targets(
+            from: image,
+            in: CGSize(width: 20, height: 20),
+            configuration: configuration,
+            bytesPerRow: 4
+        )
+
+        #expect(targets.isEmpty)
+    }
+
+    @Test
+    func emptyPixelDataProducesNoTargets() {
+        let image = SymbolPixelImage(width: 2, height: 2, data: [])
+        let configuration = ParticleMorphConfiguration(
+            maxParticleCount: 10,
+            samplingStep: 1
+        )
+
+        let targets = SymbolParticleTargetGenerator.targets(
+            from: image,
+            in: CGSize(width: 20, height: 20),
+            configuration: configuration
+        )
+
+        #expect(targets.isEmpty)
     }
 
     @Test

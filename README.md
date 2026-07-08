@@ -64,6 +64,10 @@ SymbolParticleMorph(
 .accessibilityHidden(true)
 ```
 
+## Example App
+
+The `Examples/SymbolParticleMorphExample` iOS project demonstrates the morph view with quality and rendering controls. It includes a launch screen storyboard so the app can run on iOS 27 devices and be profiled in Instruments.
+
 ## Configuration
 
 `ParticleMorphConfiguration` controls:
@@ -76,13 +80,15 @@ SymbolParticleMorph(
 - `frameBudget`: number of timer ticks after each symbol change.
 - `frameRate`: requested animation frame rate.
 - `renderingStyle`: `.hierarchical`, `.monochrome`, or `.palette`.
+- `primaryColor`: primary color used when rasterizing the SF Symbol.
+- `secondaryColor`: secondary color used by `.palette` rendering.
 - `symbolPointSize`: size used while rasterizing the SF Symbol.
 
 Use `.compact` for small status glyphs, `.balanced` for medium icon art, and `.detailed` for large hero glyphs.
 
 ## Performance Notes
 
-Particle count is the main cost driver. Prefer `.compact` for toolbar or status glyphs, and keep detailed morphs on larger static surfaces. The package caches rasterized SF Symbols by symbol name, render size, scale, rendering style, and point size. You can warm the cache:
+Particle count is the main cost driver. Prefer `.compact` for toolbar or status glyphs, and keep detailed morphs on larger static surfaces. The package caches rasterized SF Symbols by symbol name, render size, scale, rendering style, colors, and point size. You can warm the cache:
 
 ```swift
 await MainActor.run {

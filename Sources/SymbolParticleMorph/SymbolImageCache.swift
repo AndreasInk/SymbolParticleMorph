@@ -12,14 +12,27 @@ struct SymbolImageCacheKey: Hashable {
     let height: Int
     let scale: Double
     let renderingStyle: SymbolParticleRenderingStyle
+    let primaryColor: SymbolParticleColor
+    let secondaryColor: SymbolParticleColor
     let symbolPointSize: Double
 }
 
 @MainActor
 final class SymbolImageCache {
     static let shared = SymbolImageCache()
+    private static let defaultMaxEntryCount = 128
 
     private var cache: [SymbolImageCacheKey: CGImage] = [:]
+    private var keysByRecentUse: [SymbolImageCacheKey] = []
+    private let maxEntryCount: Int
+
+    init(maxEntryCount: Int = SymbolImageCache.defaultMaxEntryCount) {
+        self.maxEntryCount = max(1, maxEntryCount)
+    }
+
+    var count: Int {
+        cache.count
+    }
 
     func image(
         for symbolName: String,
@@ -33,22 +46,26 @@ final class SymbolImageCache {
             height: Int(size.height.rounded(.toNearestOrAwayFromZero)),
             scale: scale,
             renderingStyle: configuration.renderingStyle,
+            primaryColor: configuration.primaryColor,
+            secondaryColor: configuration.secondaryColor,
             symbolPointSize: Double(configuration.symbolPointSize)
         )
 
         if let cached = cache[key] {
+            markRecentlyUsed(key)
             return cached
         }
 
         guard let rendered = renderSymbol(symbolName, size: size, scale: scale, configuration: configuration) else {
             return nil
         }
-        cache[key] = rendered
+        insert(rendered, for: key)
         return rendered
     }
 
     func clear() {
         cache.removeAll()
+        keysByRecentUse.removeAll()
     }
 
     private var displayScale: Double {
@@ -86,45 +103,72 @@ final class SymbolImageCache {
         #endif
     }
 
+    @ViewBuilder
     private func symbolView(
         symbolName: String,
         size: CGSize,
         configuration: ParticleMorphConfiguration
-    ) -> AnyView {
+    ) -> some View {
         let paddedSize = CGSize(
-            width: max(size.width, configuration.symbolPointSize * 1.35),
-            height: max(size.height, configuration.symbolPointSize * 1.35)
+            width: max(size.width, configuration.symbolPointSize * Constants.symbolPaddingMultiplier),
+            height: max(size.height, configuration.symbolPointSize * Constants.symbolPaddingMultiplier)
         )
         let base = Image(systemName: symbolName)
             .font(.system(size: configuration.symbolPointSize, weight: .regular, design: .default))
-            .brightness(0.2)
+            .brightness(Constants.symbolBrightnessBoost)
+        let primaryColor = Color(configuration.primaryColor)
+        let secondaryColor = Color(configuration.secondaryColor)
 
-        let styled: AnyView
         switch configuration.renderingStyle {
         case .hierarchical:
-            styled = AnyView(
-                base
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.accentColor)
-            )
-        case .monochrome:
-            styled = AnyView(
-                base
-                    .symbolRenderingMode(.monochrome)
-                    .foregroundStyle(Color.accentColor)
-            )
-        case .palette:
-            styled = AnyView(
-                base
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(Color.accentColor, .secondary)
-            )
-        }
-
-        return AnyView(
-            styled
+            base
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(primaryColor)
                 .frame(width: paddedSize.width, height: paddedSize.height)
                 .drawingGroup()
+        case .monochrome:
+            base
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(primaryColor)
+                .frame(width: paddedSize.width, height: paddedSize.height)
+                .drawingGroup()
+        case .palette:
+            base
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(primaryColor, secondaryColor)
+                .frame(width: paddedSize.width, height: paddedSize.height)
+                .drawingGroup()
+        }
+    }
+
+    private func insert(_ image: CGImage, for key: SymbolImageCacheKey) {
+        cache[key] = image
+        markRecentlyUsed(key)
+
+        while cache.count > maxEntryCount, let leastRecentKey = keysByRecentUse.first {
+            cache.removeValue(forKey: leastRecentKey)
+            keysByRecentUse.removeFirst()
+        }
+    }
+
+    private func markRecentlyUsed(_ key: SymbolImageCacheKey) {
+        keysByRecentUse.removeAll { $0 == key }
+        keysByRecentUse.append(key)
+    }
+
+    private enum Constants {
+        static let symbolPaddingMultiplier = 1.35
+        static let symbolBrightnessBoost = 0.2
+    }
+}
+
+private extension Color {
+    init(_ color: SymbolParticleColor) {
+        self.init(
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+            opacity: color.opacity
         )
     }
 }

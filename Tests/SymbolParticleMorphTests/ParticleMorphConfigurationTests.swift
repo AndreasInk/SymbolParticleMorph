@@ -15,6 +15,8 @@ struct ParticleMorphConfigurationTests {
         #expect(configuration.frameBudget == 54)
         #expect(configuration.frameRate == 45)
         #expect(configuration.revealDuration == 0.8)
+        #expect(configuration.primaryColor == .systemBlue)
+        #expect(configuration.secondaryColor == .secondaryGray)
     }
 
     @Test(arguments: [
@@ -54,5 +56,15 @@ struct ParticleMorphConfigurationTests {
         #expect(configuration.frameBudget == 0)
         #expect(configuration.frameRate == 1)
         #expect(configuration.symbolPointSize == 1)
+    }
+
+    @Test
+    func symbolColorsClampToValidChannelRange() {
+        let color = SymbolParticleColor(red: -1, green: 0.5, blue: 2, opacity: 1.5)
+
+        #expect(color.red == 0)
+        #expect(color.green == 0.5)
+        #expect(color.blue == 1)
+        #expect(color.opacity == 1)
     }
 }
